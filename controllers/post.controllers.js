@@ -38,6 +38,13 @@ module.exports = {
         },
       });
 
+      if (posts.length === 0) {
+        return res.status(404).json({
+          status: false,
+          message: "Post not found",
+        });
+      }
+
       return res.status(200).json({
         status: true,
         message: "OK",
@@ -59,6 +66,13 @@ module.exports = {
           userId: Number(req.user.id),
         },
       });
+
+      if (!post) {
+        return res.status(404).json({
+          status: false,
+          message: "Post not found",
+        });
+      }
 
       return res.status(200).json({
         status: true,
@@ -82,15 +96,22 @@ module.exports = {
         },
       });
 
-      await imagekit.deleteFile(post.imageId, (error, result) => {
+      if (!post) {
+        return res.status(404).json({
+          status: false,
+          message: "Post not found",
+        });
+      }
+
+      imagekit.deleteFile(post.imageId, (error, result) => {
         if (error) console.log(error);
         else console.log(result);
       });
 
       await prisma.post.delete({
         where: {
-          id: Number(postId),
-          userId: Number(req.user.id),
+          id: Number(post.id),
+          userId: Number(post.userId),
         },
       });
 
@@ -109,10 +130,24 @@ module.exports = {
       const postId = req.params.id;
       const { title, description } = req.body;
 
-      const newPost = await prisma.post.update({
+      const post = await prisma.post.findUnique({
         where: {
           id: Number(postId),
           userId: Number(req.user.id),
+        },
+      });
+
+      if (!post) {
+        return res.status(404).json({
+          status: false,
+          message: "Post not found",
+        });
+      }
+
+      const newPost = await prisma.post.update({
+        where: {
+          id: Number(post.id),
+          userId: Number(post.userId),
         },
         data: { title, description },
       });
