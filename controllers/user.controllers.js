@@ -101,34 +101,25 @@ module.exports = {
   updateProfile: async (req, res, next) => {
     try {
       const { first_name, last_name, birth_date } = req.body;
-      let url;
+      const file = req.file;
+      let imageURL;
 
-      if (req.file) {
-        const strFile = req.file.buffer.toString("base64");
+      if (file) {
+        const strFile = file.buffer.toString("base64");
 
-        const result = await imagekit.upload({
+        const { url } = await imagekit.upload({
           fileName: Date.now() + path.extname(req.file.originalname),
           file: strFile,
         });
 
-        url = result.url;
-      }
-
-      const updateData = {
-        first_name,
-        last_name,
-        birth_date,
-      };
-
-      if (url) {
-        updateData.profile_picture = url;
+        imageURL = url;
       }
 
       const newUserProfile = await prisma.userProfile.update({
         where: {
           userId: Number(req.user.id),
         },
-        data: updateData,
+        data: { first_name, last_name, birth_date, profile_picture: imageURL },
       });
 
       return res.status(200).json({
