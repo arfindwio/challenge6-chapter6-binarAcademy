@@ -11,4 +11,21 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/", router);
 
+// 404 error handling
+app.use((req, res, next) => {
+  res.status(404).json({
+    status: false,
+    message: "Not Found",
+  });
+});
+
+// 500 error handling
+app.use((err, req, res, next) => {
+  res.status(500).json({
+    status: false,
+    message: "Internal Server Error",
+    data: null,
+  });
+});
+
 app.listen(PORT, () => console.log("listening on port", PORT));
